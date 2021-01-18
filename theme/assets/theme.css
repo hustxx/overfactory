@@ -7014,3 +7014,12 @@ hr {
 
 .store-availability-list__phone {
   margin-bottom: 0; }
+
+/* My customization of theme*/
+
+/* Make menu dropdown hover */
+.site-nav--has-dropdown:hover .site-nav__dropdown,
+.site-nav--has-dropdown:focus .site-nav__dropdown {
+  display: block;
+}
+.site-nav__dropdown { top: 30px; }
