@@ -7602,12 +7602,14 @@ theme.Filters = (function() {
   var selectors = {
     filterSelection: '#FilterTags',
     sortSelection: '#SortBy',
+    onSaleSelection: '#OnSale',
     selectInput: '[data-select-input]'
   };
 
   function Filters(container) {
     this.filterSelect = container.querySelector(selectors.filterSelection);
     this.sortSelect = container.querySelector(selectors.sortSelection);
+    this.onSaleSelect = container.querySelector(selectors.onSaleSelection);
 
     this.selects = document.querySelectorAll(selectors.selectInput);
 
@@ -7630,6 +7632,13 @@ theme.Filters = (function() {
       this.filterSelect.addEventListener(
         'change',
         this._onFilterChange.bind(this)
+      );
+    }
+
+    if (this.onSaleSelect) {
+      this.onSaleSelect.addEventListener(
+        'change',
+        this._onOnSaleChange.bind(this)
       );
     }
 
@@ -7682,6 +7691,21 @@ theme.Filters = (function() {
 
     _onFilterChange: function() {
       document.location.href = this._getFilterValue();
+    },
+
+  _onOnSaleChange: function() {
+      var url = document.location.href.split('?')[0]
+      var onSalePram = "sale=0"
+      if (this._getCheckboxValue()) {
+        onSalePram = "sale=1"
+      }
+      var new_url = url + "?" + onSalePram
+
+      document.location.href = new_url;
+    },
+
+    _getCheckboxValue: function() {
+      return this.onSaleSelect.checked;
     },
 
     _getFilterValue: function() {

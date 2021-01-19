@@ -17,6 +17,25 @@
 
 {% paginate collection.products by limit %}
 
+{% comment %} Capture the params in url {% endcomment %}
+{%- capture contentForQuerystring -%}{{ content_for_header }}{%- endcapture -%}
+{%- assign page_url = contentForQuerystring | split:'"pageurl":"' | last | split:'"' | first | split:'.myshopify.com' | last |   replace:'\/','/' |    replace:'%20',' ' |    replace:'\u0026','&'  -%}
+{%- assign on_sale_filter_enabled = '0' -%}
+{%- for i in (1..1) -%}
+	{%- unless page_url contains "?" -%}{% break %}{%- endunless -%}
+	{%- assign query_string = page_url | split:'?' | last -%}
+	{%- assign qry_parts= query_string | split:'&' -%}
+	{%- for part in qry_parts -%}
+		{%- assign key_and_value = part | split:'=' -%}
+		{%- if key_and_value.size > 1 -%}
+			{% if key_and_value[0] == 'sale' %}
+        {%- assign on_sale_filter_enabled = key_and_value[1] -%}
+			{% endif%}
+		{%- endif -%}
+	{%- endfor -%}
+{%- endfor -%}
+
+
 <div data-section-id="{{ section.id }}" data-section-type="collection-template">
   <header class="collection-header">
     {%- assign is_filter_by_available = false -%}
@@ -113,6 +132,13 @@
                   </div>
                 </div>
               {% endif %}
+
+              {% if section.settings.onsale_filter_enable %}
+                <div class = "filters-toolbar__item-child">
+                  <label class="filters-toolbar__label select-label" for="OnSale">on sale</label>
+                  <input type="checkbox" id="OnSale" class="filters-toolbar__input-checkbox" {% if on_sale_filter_enabled=='1' %} checked {% endif %}>
+                </div>
+              {% endif %}
             </div>
 
             <div class="filters-toolbar__item filters-toolbar__item--count">
@@ -139,9 +165,17 @@
 
       <ul class="grid grid--uniform{% if collection.products_count > 0 %} grid--view-items{% endif %}">
         {% for product in collection.products %}
-          <li class="grid__item grid__item--{{section.id}} {{ grid_item_width }}">
-            {% include 'product-card-grid', max_height: max_height, product: product, show_vendor: section.settings.show_vendor %}
-          </li>
+          {% if on_sale_filter_enabled == '0' %}
+            <li class="grid__item grid__item--{{section.id}} {{ grid_item_width }}">
+              {% include 'product-card-grid', max_height: max_height, product: product, show_vendor: section.settings.show_vendor %}
+            </li>
+          {% else %}
+              {% if product.compare_at_price  %}
+                <li class="grid__item grid__item--{{section.id}} {{ grid_item_width }}">
+                  {% include 'product-card-grid', max_height: max_height, product: product, show_vendor: section.settings.show_vendor %}
+                </li>
+              {% endif %}
+          {% endif %}
         {% else %}
           {% comment %}
           Add default products to help with onboarding for collections/all only.
@@ -514,6 +548,14 @@
         "vi": "Bật lọc thẻ",
         "zh-CN": "启用标签筛选",
         "zh-TW": "啟用標籤篩選功能"
+      },
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "onsale_filter_enable",
+      "label": {
+        "en": "Enable on sale filtering"
       },
       "default": true
     }
